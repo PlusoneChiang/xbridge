@@ -1,0 +1,58 @@
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+
+env:
+  TARGET: x86_64-pc-windows-gnu
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify tag matches Cargo.toml version
+        run: |
+          CARGO_VER=$(grep '^version' Cargo.toml | head -1 | sed 's/version = "\(.*\)"/\1/')
+          TAG_VER="${GITHUB_REF_NAME#v}"
+          if [ "$CARGO_VER" != "$TAG_VER" ]; then
+            echo "::error::Tag v$TAG_VER does not match Cargo.toml version $CARGO_VER"
+            exit 1
+          fi
+          echo "Building version $CARGO_VER"
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ env.TARGET }}
+
+      - name: Install MinGW cross-compiler
+        run: sudo apt-get install -y gcc-mingw-w64-x86-64
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ env.TARGET }}-cargo-${{ hashFiles('Cargo.lock') }}
+          restore-keys: ${{ env.TARGET }}-cargo-
+
+      - name: Build release binary
+        run: cargo build --release --target ${{ env.TARGET }}
+
+      - name: Rename artifact
+        run: |
+          cp target/${{ env.TARGET }}/release/xbridge.exe xbridge.exe
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: xbridge.exe
+          generate_release_notes: true

@@ -1,0 +1,54 @@
+name: Update Detectable List
+
+on:
+  schedule:
+    - cron: "0 0 1 * *"  # 1st of each month at 00:00 UTC
+  workflow_dispatch:      # allow manual trigger
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Discord detectable list
+        run: |
+          curl -fsSL \
+            "https://discord.com/api/v9/applications/detectable" \
+            -H "User-Agent: xbridge-updater/1.0" \
+            -o new-list.json
+
+      - name: Compute SHA-256 (raw bytes, no formatting)
+        run: |
+          sha256sum new-list.json | awk '{print $1}' > new-list.json.sha256
+
+      - name: Compare with existing hash
+        id: check
+        run: |
+          if [ -f xbridge-detectable-list.json.sha256 ]; then
+            OLD=$(cat xbridge-detectable-list.json.sha256)
+            NEW=$(cat new-list.json.sha256)
+            if [ "$OLD" = "$NEW" ]; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Update list files
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          cp new-list.json xbridge-detectable-list.json
+          cp new-list.json.sha256 xbridge-detectable-list.json.sha256
+
+      - name: Commit and push
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add xbridge-detectable-list.json xbridge-detectable-list.json.sha256
+          git commit -m "chore: update detectable list $(date -u +%Y-%m-%d)"
+          git push
