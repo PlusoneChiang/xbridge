@@ -14,21 +14,21 @@ xbridge 以 Windows 服務形式運行在 WINE prefix 中，將遊戲的 Discord
 ## 運作原理
 
 ```
-┌────────────── WINE / Proton ──────────────┐    ┌──── 宿主機 (Linux/macOS) ──┐
+┌────────────── WINE / Proton ───────────────┐    ┌──── Host (Linux/macOS) ────┐
 │                                            │    │                            │
-│  [遊戲]                                   │    │                            │
+│  [Game]                                    │    │                            │
 │    │  \\.\pipe\discord-ipc-0               │    │                            │
 │    ▼                                       │    │                            │
 │  ┌──────────────────────────────────┐      │    │                            │
 │  │        xbridge Gateway           │      │    │                            │
 │  │                                  │      │    │                            │
-│  │  Named Pipe ←→ 狀態機 ←→ ────────┼──────┼────┼→ discord-ipc-0            │
-│  │               (Frame 解析)       │      │    │   (Unix Domain Socket)     │
+│  │  Named Pipe ←→ State Machine ←→ ─┼──────┼────┼→ discord-ipc-0             │
+│  │               (Frame Parser)     │      │    │   (Unix Domain Socket)     │
 │  └──────────┬───────────────────────┘      │    │                            │
-│             │ 事件                          │    │  [Discord 客戶端]          │
+│             │ events                       │    │  [Discord Client]          │
 │  ┌──────────┴───────┐                      │    │                            │
-│  │ 行程掃描器        │                     │    │                            │
-│  │ (自動發現)        │                     │    │                            │
+│  │ Process Scanner  │                      │    │                            │
+│  │ (Auto-Discovery) │                      │    │                            │
 │  └──────────────────┘                      │    │                            │
 └────────────────────────────────────────────┘    └────────────────────────────┘
 ```
@@ -157,7 +157,7 @@ xbridge runs inside a WINE prefix as a Windows service, forwarding Discord IPC t
 ### How it works
 
 ```
-┌────────────── WINE / Proton ──────────────┐    ┌──── Host (Linux/macOS) ────┐
+┌────────────── WINE / Proton ───────────────┐    ┌──── Host (Linux/macOS) ────┐
 │                                            │    │                            │
 │  [Game]                                    │    │                            │
 │    │  \\.\pipe\discord-ipc-0               │    │                            │
@@ -165,13 +165,13 @@ xbridge runs inside a WINE prefix as a Windows service, forwarding Discord IPC t
 │  ┌──────────────────────────────────┐      │    │                            │
 │  │        xbridge Gateway           │      │    │                            │
 │  │                                  │      │    │                            │
-│  │  Named Pipe ←→ State Machine ←→ ─┼──────┼────┼→ discord-ipc-0            │
+│  │  Named Pipe ←→ State Machine ←→ ─┼──────┼────┼→ discord-ipc-0             │
 │  │               (Frame Parser)     │      │    │   (Unix Domain Socket)     │
 │  └──────────┬───────────────────────┘      │    │                            │
 │             │ events                       │    │  [Discord Client]          │
 │  ┌──────────┴───────┐                      │    │                            │
-│  │ Process Scanner   │                     │    │                            │
-│  │ (Auto-Discovery)  │                     │    │                            │
+│  │ Process Scanner  │                      │    │                            │
+│  │ (Auto-Discovery) │                      │    │                            │
 │  └──────────────────┘                      │    │                            │
 └────────────────────────────────────────────┘    └────────────────────────────┘
 ```
