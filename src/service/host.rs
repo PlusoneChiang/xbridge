@@ -1,5 +1,4 @@
 use std::ffi::OsString;
-use std::sync::Arc;
 use windows_service::{
     define_windows_service,
     service::{
@@ -9,8 +8,6 @@ use windows_service::{
     service_control_handler::{self, ServiceControlHandlerResult},
     service_dispatcher,
 };
-
-use crate::shared::{ActiveSessions, SlotRegistry};
 
 const SERVICE_NAME: &str = "xbridge";
 
@@ -88,14 +85,12 @@ pub fn run_foreground() {
 }
 
 async fn run_bridge() {
-    let slots = SlotRegistry::default();
-    let active: ActiveSessions =
-        Arc::new(std::sync::RwLock::new(std::collections::HashSet::new()));
-    let (handoff_tx, handoff_rx) = tokio::sync::mpsc::channel(32);
-    let (reclaim_tx, reclaim_rx) = tokio::sync::mpsc::channel::<u8>(32);
+    crate::config::log_resolved_path();
+
+    let (event_tx, event_rx) = tokio::sync::mpsc::channel::<crate::shared::DiscoveryEvent>(32);
 
     tokio::join!(
-        crate::bridge::run(slots.clone(), handoff_tx, reclaim_tx),
-        crate::discovery::run(slots, active, handoff_rx, reclaim_rx),
+        crate::gateway::run(event_rx),
+        crate::discovery::run(event_tx),
     );
 }

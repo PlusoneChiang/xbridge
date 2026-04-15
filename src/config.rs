@@ -11,9 +11,7 @@ pub fn resolve_socket_dir() -> Option<PathBuf> {
     // 1. env DISCORD_IPC_PATH
     if let Ok(p) = std::env::var("DISCORD_IPC_PATH") {
         if p.starts_with('/') || p.starts_with('\\') {
-            let path = PathBuf::from(&p);
-            crate::log!("[config] IPC path from env: {}", path.display());
-            return Some(path);
+            return Some(PathBuf::from(&p));
         }
         crate::log!("[config] env DISCORD_IPC_PATH is not a valid path: {p}");
     }
@@ -21,21 +19,26 @@ pub fn resolve_socket_dir() -> Option<PathBuf> {
     // 2. Registry DISCORD_IPC_PATH (macOS: env unavailable in Wine service)
     if let Some(p) = read_registry_ipc_path() {
         if p.starts_with('/') || p.starts_with('\\') {
-            let path = PathBuf::from(&p);
-            crate::log!("[config] IPC path from registry: {}", path.display());
-            return Some(path);
+            return Some(PathBuf::from(&p));
         }
         crate::log!("[config] registry DISCORD_IPC_PATH is not a valid path: {p}");
     }
 
     // 3. XDG_RUNTIME_DIR (Linux fallback)
     if let Ok(p) = std::env::var("XDG_RUNTIME_DIR") {
-        crate::log!("[config] IPC path from XDG_RUNTIME_DIR: {p}");
         return Some(PathBuf::from(p));
     }
 
     crate::log!("[config] no IPC path found (env/registry/XDG all unset)");
     None
+}
+
+/// Log the resolved IPC path once at startup.
+pub fn log_resolved_path() {
+    match resolve_socket_dir() {
+        Some(p) => crate::log!("[config] IPC socket dir: {}", p.display()),
+        None => crate::log!("[config] no IPC path configured"),
+    }
 }
 
 fn read_registry_ipc_path() -> Option<String> {

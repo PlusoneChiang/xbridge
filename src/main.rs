@@ -1,6 +1,6 @@
-mod bridge;
 mod config;
 mod discovery;
+mod gateway;
 mod log;
 mod service;
 mod shared;
