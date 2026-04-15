@@ -1,6 +1,6 @@
 # xbridge
 
-xbridge - 唸作Cross-Bridge
+xbridge - 唸作Cross-Bridge  
 WINE / Proton 環境下的 Discord Rich Presence 橋接器。
 
 xbridge 以 Windows 服務形式運行在 WINE prefix 中，將遊戲的 Discord IPC 流量透過 Unix domain socket 轉發至宿主機的 Discord 客戶端。同時內建自動發現機制——即使遊戲本身不支援 Discord RPC，也能偵測正在運行的遊戲並自動設定 Rich Presence。
@@ -149,7 +149,7 @@ Release profile 針對檔案大小最佳化（`opt-level = "z"`、LTO、strip、
 
 ## English
 
-xbridge — pronounced "Cross-Bridge".
+xbridge — pronounced "Cross-Bridge".  
 Discord Rich Presence bridge for WINE / Proton.
 
 xbridge runs inside a WINE prefix as a Windows service, forwarding Discord IPC traffic from games to the host Discord client via Unix domain socket. It also provides auto-discovery — detecting running games and setting Rich Presence even when the game doesn't have native Discord RPC support.
